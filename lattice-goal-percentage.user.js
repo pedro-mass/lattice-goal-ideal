@@ -1,12 +1,12 @@
 // ==UserScript==
-// @name        Lattice Goal Percentage (ideal)
+// @name        Lattice Goals - Add Ideal
 // @namespace   Violentmonkey Scripts
 // @match       http://*.latticehq.com/goals/*
 // @match       https://*.latticehq.com/goals/*
 // @grant       none
 // @version     1.1
 // @author      pedro-mass
-// @description Determines ideal percentage based on Created on and Due dates
+// @description Determines ideal goal value based on Created on and Due dates
 // @run-at      document-idle
 // @require     http://code.jquery.com/jquery-3.5.0.min.js
 // ==/UserScript==
@@ -22,52 +22,91 @@ function run() {
   console.log('Starting Lattice Goal Percentage calculations...')
   if (!isPercentageBasedGoal()) return
 
-  const startDate = getDate(/^created\n\n/i)
-  const endDate = getDate(/^due\n\n/i)
-  const currentDate = Date.now()
-
-  const currentPercentage = Number(
-    getValue(/^current: /i, 'span').replace('%', '')
+  const Dates = getDates()
+  const GoalStats = getGoalStats()
+  const percentageByDate = getRelativePercentage(
+    Dates.start,
+    Dates.end,
+    Dates.current
   )
 
-  const idealPercentage = toWholePercent(
-    getPercentage(startDate, endDate, currentDate)
+  const idealValue = Math.round(
+    getRelativeValue(GoalStats.start, GoalStats.goal, percentageByDate)
   )
 
-  return insertPercentage(idealPercentage, currentPercentage)
+  const goalDirection = GoalStats.start <= GoalStats.end ? 1 : -1
+
+  return insertIdeal(
+    idealValue,
+    GoalStats.unit,
+    GoalStats.current,
+    goalDirection
+  )
 }
 
-function getProgressIndicator(idealPercentage, currentPercentage) {
-  if (!currentPercentage) return
+function getRelativeValue(start, end, percentage) {
+  const offset = start
+  return (end - offset) * percentage + offset
+}
 
-  if (idealPercentage <= currentPercentage) {
+function getDates() {
+  const start = getDate(/^created\n\n/i)
+  const end = getDate(/^due\n\n/i)
+  const current = Date.now()
+
+  return {
+    start,
+    end,
+    current,
+  }
+}
+
+function getGoalStats() {
+  const unit = getValue(/^start: /i, 'span').replace(/\d+/, '')
+  const getNumber = (regex) => Number(getValue(regex, 'span').replace(unit, ''))
+  const start = getNumber(/^start: /i)
+  const current = getNumber(/^current: /i)
+  const goal = getNumber(/^goal: /i)
+
+  return {
+    start,
+    goal,
+    current,
+    unit,
+  }
+}
+
+function getProgressIndicator(ideal, current) {
+  if (!current) return
+
+  if (ideal <= current) {
     return '🎉'
   }
 
   return '😢'
 }
 
-function insertPercentage(idealPercentage, currentPercentage) {
-  const progressIndicator = getProgressIndicator(
-    idealPercentage,
-    currentPercentage
-  )
-  const percentageElem = `<span class="css-1mddpa2">Ideally: <span>${idealPercentage}%</span> <span>${progressIndicator}</span></span>`
-  const percentageContainer = contains('div', /^start:/i)
+function insertIdeal(ideal, unit, current, isAscendingGoal) {
+  if (contains('span', /^ideally: /i).length > 0) {
+    return
+  }
 
-  return $(percentageContainer).find('span').first().after(percentageElem)
+  const progressIndicator = isAscendingGoal
+    ? getProgressIndicator(ideal, current)
+    : getProgressIndicator(current, ideal)
+
+  const idealElem = `<span class="css-1mddpa2">Ideally: <span>${ideal}${unit}</span> <span>${progressIndicator}</span></span>`
+  const goalsContainer = contains('div', /^start:/i)
+
+  return $(goalsContainer).find('span').first().after(idealElem)
 }
 
 function shouldRun() {
-  const pageCheck = contains('span', /^start:/i)
+  const pageCheck = contains('span', /^start: /i)
   return pageCheck != null && pageCheck.length > 0
 }
 
-function toWholePercent(percentage) {
-  return Math.round(percentage * 100)
-}
-
-function getPercentage(startDate, endDate, currentDate) {
+function getRelativePercentage(startDate, endDate, currentDate) {
   const offset = startDate
   endDate = endDate - offset
   currentDate = currentDate - offset
