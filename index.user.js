@@ -77,7 +77,7 @@ function getGoalStats() {
 }
 
 function getProgressIndicator(ideal, current) {
-  if (!current) return
+  if (!current) return ''
 
   if (ideal <= current) {
     return '🎉'
