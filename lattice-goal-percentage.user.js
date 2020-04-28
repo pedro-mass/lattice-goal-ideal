@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://ifit.latticehq.com/goals/*
 // @grant       none
-// @version     1.0
+// @version     1.1
 // @author      pedro-mass
 // @description Determines expected percentage based on Created on and Due dates
 // @run-at      document-idle
@@ -25,16 +25,33 @@ function run() {
   const endDate = getDate(/^due\n\n/i)
   const currentDate = Date.now()
 
-  const percentage = toWholePercent(
+  const currentPercentage = Number(
+    getValue(/^current: /i, 'span').replace('%', '')
+  )
+
+  const idealPercentage = toWholePercent(
     getPercentage(startDate, endDate, currentDate)
   )
 
-  return insertPercentage(percentage)
+  return insertPercentage(idealPercentage, currentPercentage)
 }
 
-function insertPercentage(percentage) {
+function getProgressIndicator(idealPercentage, currentPercentage) {
+  if (currentPercentage) {
+    if (idealPercentage <= currentPercentage) {
+      return '🎉'
+    }
+    return '😢'
+  }
+}
+
+function insertPercentage(idealPercentage, currentPercentage) {
+  const progressIndicator = getProgressIndicator(
+    idealPercentage,
+    currentPercentage
+  )
+  const percentageElem = `<span class="css-1mddpa2">Ideally: <span>${idealPercentage}%</span> <span>${progressIndicator}</span></span>`
   const percentageContainer = contains('div', /^start:/i)
-  const percentageElem = `<span class="css-1mddpa2">Expected: <span>${percentage}%</span></span>`
 
   return $(percentageContainer).find('span').first().after(percentageElem)
 }
@@ -55,10 +72,12 @@ function getPercentage(startDate, endDate, currentDate) {
   return currentDate / endDate
 }
 
-function getDate(regex, dateElem = 'div') {
-  return new Date(
-    replaceString(getText(first(contains(dateElem, regex))), regex, '')
-  ).getTime()
+function getDate(regex, selector = 'div') {
+  return new Date(getValue(regex, selector)).getTime()
+}
+
+function getValue(regex, selector) {
+  return replaceString(getText(first(contains(selector, regex))), regex, '')
 }
 
 function replaceString(string, searchString, newString) {
