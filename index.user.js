@@ -4,7 +4,7 @@
 // @match       http://*.latticehq.com/goals/*
 // @match       https://*.latticehq.com/goals/*
 // @grant       none
-// @version     1.1
+// @version     1.3
 // @author      pedro-mass
 // @description Determines ideal goal value based on Created on and Due dates
 // @run-at      document-idle
