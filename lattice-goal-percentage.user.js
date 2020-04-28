@@ -7,6 +7,7 @@
 // @author      pedro-mass
 // @description Determines expected percentage based on Created on and Due dates
 // @run-at      document-idle
+// @require     http://code.jquery.com/jquery-3.5.0.min.js
 // ==/UserScript==
 
 waitUntilTrue(shouldRun, run)
@@ -20,8 +21,6 @@ function run() {
   console.log('Starting Lattice Goal Percentage calculations...')
   if (!isPercentageBasedGoal()) return
 
-  // check if goal is percentage based?
-  // get start date
   const startDate = getDate(/^created\n\n/i)
   const endDate = getDate(/^due\n\n/i)
   const currentDate = Date.now()
@@ -30,23 +29,18 @@ function run() {
     getPercentage(startDate, endDate, currentDate)
   )
 
-  const percentageElem = `<span class="css-1mddpa2">Expected: <span>${percentage}%</span></span>`
-  const percentageContainer = contains('div', /^start:/i)
-  // todo: insert new element into container
+  return insertPercentage(percentage)
+}
 
-  console.log({
-    fn: 'run()',
-    startDate,
-    endDate,
-    currentDate,
-    percentage,
-    percentageElem,
-    percentageContainer,
-  })
+function insertPercentage(percentage) {
+  const percentageContainer = contains('div', /^start:/i)
+  const percentageElem = `<span class="css-1mddpa2">Expected: <span>${percentage}%</span></span>`
+
+  return $(percentageContainer).find('span').first().after(percentageElem)
 }
 
 function shouldRun() {
-  const pageCheck = contains('p', /^key results$/i)
+  const pageCheck = contains('span', /^start:/i)
   return pageCheck != null && pageCheck.length > 0
 }
 
@@ -91,7 +85,7 @@ function first(arr) {
   return arr[0]
 }
 
-function waitUntilTrue(checkFn, cb = (x) => x, timeout = 100) {
+function waitUntilTrue(checkFn, cb = (x) => x, timeout = 250) {
   const intervalId = setInterval(checkInterval, timeout)
   function checkInterval() {
     if (checkFn()) {
