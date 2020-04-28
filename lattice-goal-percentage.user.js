@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name        Lattice Goal Percentage (expected)
 // @namespace   Violentmonkey Scripts
-// @match       https://ifit.latticehq.com/goals/*
+// @match       http://*.latticehq.com/goals/*
+// @match       https://*.latticehq.com/goals/*
 // @grant       none
 // @version     1.1
 // @author      pedro-mass
