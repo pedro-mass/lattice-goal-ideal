@@ -38,12 +38,13 @@ function run() {
 }
 
 function getProgressIndicator(idealPercentage, currentPercentage) {
-  if (currentPercentage) {
-    if (idealPercentage <= currentPercentage) {
-      return '🎉'
-    }
-    return '😢'
+  if (!currentPercentage) return
+
+  if (idealPercentage <= currentPercentage) {
+    return '🎉'
   }
+
+  return '😢'
 }
 
 function insertPercentage(idealPercentage, currentPercentage) {
