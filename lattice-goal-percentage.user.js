@@ -6,7 +6,7 @@
 // @grant       none
 // @version     1.1
 // @author      pedro-mass
-// @description Determines expected percentage based on Created on and Due dates
+// @description Determines ideal percentage based on Created on and Due dates
 // @run-at      document-idle
 // @require     http://code.jquery.com/jquery-3.5.0.min.js
 // ==/UserScript==
