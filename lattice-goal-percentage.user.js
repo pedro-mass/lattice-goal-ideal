@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Lattice Goal Percentage (expected)
+// @name        Lattice Goal Percentage (ideal)
 // @namespace   Violentmonkey Scripts
 // @match       http://*.latticehq.com/goals/*
 // @match       https://*.latticehq.com/goals/*
